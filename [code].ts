@@ -1,3 +1,4 @@
+// force-rebuild-2026-03-22-1525
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getCachedProducts } from '@/lib/products-cache';
 
