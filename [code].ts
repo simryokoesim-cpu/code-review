@@ -1,26 +1,34 @@
-// force-rebuild-2026-03-22-1525
+// force-rebuild-final-2026-03-22-1555
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getCachedProducts } from '@/lib/products-cache';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+const PRODUCTS = [
+  {
+    id: 1,
+    name: "日本 3GB/7 天",
+    price: 4.50,
+    type: "local",
+    countries: [{ code: "JP", cn: "日本" }]
+  },
+  {
+    id: 2,
+    name: "韩国 2GB/5 天",
+    price: 3.50,
+    type: "local",
+    countries: [{ code: "KR", cn: "韩国" }]
+  },
+  {
+    id: 3,
+    name: "欧洲 5GB/30 天",
+    price: 12.00,
+    type: "regional",
+    countries: [{ code: "DE" }, { code: "FR" }]
+  },
+];
 
-  const { code } = req.query;
-  const countryCode = Array.isArray(code) ? code[0] : code;
-  
-  if (!countryCode) {
-    return res.status(400).json({ success: false, error: '国家代码不能为空' });
-  }
-
-  // 直接使用缓存产品（B2B API 环境变量问题待修复）
-  const allProducts = await getCachedProducts();
-  const filtered = allProducts.filter((p: any) => {
-    if (p.type !== 'local' || !p.countries) return false;
-    return p.countries.some((c: any) => c.code?.toUpperCase() === countryCode.toUpperCase());
-  });
-
-  res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate');
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const code = (req.query.code as string)?.toUpperCase();
+  const filtered = PRODUCTS.filter(p =>
+    p.countries?.some(c => c.code?.toUpperCase() === code)
+  );
   return res.status(200).json({ success: true, data: filtered });
 }
